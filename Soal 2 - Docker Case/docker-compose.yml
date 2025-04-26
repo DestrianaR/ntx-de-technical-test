@@ -1,2 +1,32 @@
-version: "3"
+version: "3"  # Docker Compose version
+
 services:
+  api:
+    build: ./api  # Build from ./api
+    container_name: "api"  # Set the container name to 'api'
+    volumes:
+      - ./api:/app  # Mount the local ./api to /app in the container
+    ports:
+      - "6000:6000"  # Map container port 6000 to host port 6000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6000/"]  # Check if API is healthy
+      interval: 5s  # Check every 5s
+      timeout: 2s  # Timeout after 2s
+      retries: 5  # Fail after 5 retries
+    networks:
+      - my_network  # Connect to 'my_network'
+
+  etl:
+    build: ./etl  # Build from ./etl
+    container_name: etl  # Name the container 'etl'
+    volumes:
+      - ./etl:/app  # Mount local ./etl to /app
+    depends_on:
+      api:
+        condition: service_healthy  # Wait until API is healthy
+    networks:
+      - my_network  # Connect to 'my_network'
+
+networks:
+  my_network:
+    driver: bridge  # Use bridge network
